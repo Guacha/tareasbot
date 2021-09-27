@@ -22,7 +22,15 @@ class CourseCog(Cog):
         description="Mostrar todos los cursos disponibles"
     )
     async def show_all_courses(self, ctx: SlashContext):
-        self.console.debug_log(f"Command: cursos mostrar, User: {ctx.author.name} ({ctx.author_id})", module="HOMEWORK")
+        """
+        Command that shows all available courses in an embed, should also allow in the future to scroll through all
+        courses
+        TODO: Implement a way to scroll through courses
+        Args:
+            ctx: The Slash context the function is called with. Given by the Discord API
+        """
+
+        self.console.debug_log(f"Command: cursos mostrar, User: {ctx.author.name} ({ctx.author_id})")
         cursos = DB.get_courses()
         embed = discord.Embed(title="Me quiero morir", description="Estos son los cursos registrados en mi Base de "
                                                                    "datos")
@@ -55,10 +63,18 @@ class CourseCog(Cog):
                 option_type=3,
                 required=True
             ),
+            create_option(
+                name="semestre",
+                description="Codigo del semestre del curso, Algo como 202030",
+                option_type=4,
+                required=True
+            ),
 
         ]
     )
-    async def add_course(self, ctx: SlashContext, departamento, codigo, nombre):
+    async def add_course(self, ctx: SlashContext, departamento: str, codigo: int, nombre: str, semestre: int) -> None:
+        departamento = departamento.upper()
+        nombre.capitalize()
         self.console.debug_log(f"Command: cursos agregar {departamento} {codigo}, {nombre}, User: "
                                f"{ctx.author.name} ({ctx.author_id})")
         if len(departamento) != 3:
@@ -66,13 +82,19 @@ class CourseCog(Cog):
             await ctx.send("El nombre del departamento no es válido, debe ser una cadena de 3 caracteres")
             return
 
-        if 3 < len(codigo) <= 6:
-            self.console.err("Command failed: Course code error", module="COURSES")
-            await ctx.send("El código de la asignatura no es válida, debe ser una cadena de al menos 4 y no mas de 6 "
+        if not (999 < codigo <= 999999):
+            self.console.err("Command failed: Course code error")
+            await ctx.send("El código de la asignatura no es válida, debe ser un entero de al menos 4 y no mas de 6 "
                            "caracteres")
             return
+        if not (99999 < semestre < 1000000):
+            self.console.err("Command failed: Course semester error")
+            await ctx.send("El código de la asignatura no es válida, debe ser un entero de 6 caracteres")
+            return
 
-        await ctx.send("200 OK")
+        self.console.debug_log("Calling DB Function: add_course()")
+        DB.add_course(departamento, codigo, nombre, semestre)
+        await ctx.send("He agregado el curso satisfactoriamente uwu")
 
 
 def setup(bot):
