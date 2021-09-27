@@ -140,3 +140,4 @@ cython_debug/
 #Vscode and Venv
 .vscode/
 schoolbot-env/
+.idea/

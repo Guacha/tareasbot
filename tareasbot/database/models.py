@@ -7,12 +7,14 @@ Base = declarative_base()
 user_nrc = Table('user_nrc', Base.metadata,
                  Column('user_id', ForeignKey('users.id'), primary_key=True),
                  Column('nrc_id', ForeignKey('nrcs.id'), primary_key=True)
-                )
+                 )
+
 
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     enrolled_nrcs = relationship("NRC", secondary=user_nrc, back_populates="enrolled_users")
+
 
 class Course(Base):
     __tablename__ = 'courses'
@@ -22,10 +24,11 @@ class Course(Base):
     name = Column(String(150), nullable=False)
     nrcs = relationship("NRC", back_populates="course")
     semester_code = Column(Integer, nullable=False)
-    
+
     def __repr__(self):
         return f"Course: {self.name} ({self.course_dept} {self.course_code})"
-    
+
+
 class NRC(Base):
     __tablename__ = 'nrcs'
     id = Column(Integer, primary_key=True)
@@ -33,7 +36,8 @@ class NRC(Base):
     course = relationship("Course", back_populates="nrcs")
     assignments = relationship("Assignment", back_populates="nrc")
     enrolled_users = relationship("User", secondary=user_nrc, back_populates="enrolled_nrcs")
-    
+
+
 class Assignment(Base):
     __tablename__ = "assignments"
     id = Column(Integer, primary_key=True)
@@ -41,4 +45,3 @@ class Assignment(Base):
     nrc = relationship("NRC", back_populates="assignments")
     name = Column(String(255), nullable=False)
     due_date = Column(DateTime, nullable=False)
-    
