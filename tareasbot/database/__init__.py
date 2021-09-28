@@ -62,6 +62,12 @@ class Database:
             return False
 
     def get_courses(self) -> list[Course]:
+        """
+        Gets all the courses stored in the database
+
+        Returns: A list of Course Items. Please see the Course class for more information
+
+        """
         self.console.debug_log("Querying for all courses...")
         s = self._session()
         courses = s.query(Course).all()
@@ -69,9 +75,63 @@ class Database:
         return courses
 
     def get_course(self, dept: str, code: str) -> Course:
+        """
+        Get a course with a given department and code
+
+        Args:
+            dept (str): The department to look for. Usually a 3-4 character String
+            code (str): The code to look for. Usually a 4-5 long string of only digits
+
+        Returns: A Course object with the given parametres, Returns None if no course was found
+
+        """
         dept = dept.upper()
         self.console.debug_log(f"Querying to find course {dept} {code}")
 
         query = self.get_session().query(Course).filter_by(course_dept=dept, course_code=code)
 
         return query.first()
+
+    def courses_in_dept(self, dept: str) -> list[Course]:
+        """
+        Gets a list of all courses pertaining to a given department.
+
+        Args:
+            dept (str): The department to look for. Usually a 3-4 letter string.
+
+        Returns: A list of Course objects. All courses in the list belong to the given department.
+
+        """
+        dept = dept.upper()
+        self.console.debug_log(f"Querying for courses in dept {dept}")
+
+        query = self.get_session().query(Course).filter_by(course_dept=dept)
+
+        return query.all()
+
+    def delete_course(self, dept: str, code: str) -> bool:
+        """
+        Deletes a course with given department and code
+
+        Args:
+            dept: The department of the course to be deleted
+            code: The code of the course to be deleted
+
+        Returns:
+            bool: Boolean representing whether the SQL transaction was successful or not
+        """
+        dept = dept.upper()
+        self.console.debug_log(f"Attempting to delete course {dept} {code}")
+
+        session = self.get_session()
+
+        course = self.get_course(dept, code)
+
+        if course is not None:
+            self.console.debug_log("Course found, Deleting...")
+            session.delete(course)
+            return True
+
+        else:
+            self.console.err(f"The course {dept} {code} was not found in the database, skipping deletion.")
+            return False

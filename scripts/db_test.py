@@ -1,3 +1,3 @@
 from tareasbot import DB
 
-print(DB.get_course("ABC", "1234"))
+print(DB.courses_in_dept("IST"))

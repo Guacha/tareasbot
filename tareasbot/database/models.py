@@ -25,7 +25,7 @@ class Course(Base):
     nrcs = relationship("NRC", back_populates="course")
 
     def __repr__(self):
-        return f"Course: {self.name} ({self.course_dept} {self.course_code})"
+        return f"<Course: {self.name} ({self.course_dept} {self.course_code})>"
 
 
 class NRC(Base):
@@ -36,6 +36,9 @@ class NRC(Base):
     assignments = relationship("Assignment", back_populates="nrc")
     enrolled_users = relationship("User", secondary=user_nrc, back_populates="enrolled_nrcs")
     semester_code = Column(Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<NRC: {self.id:04} for course {self.course.course_dept} {self.course.course_code}>"
 
 
 class Assignment(Base):
