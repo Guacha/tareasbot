@@ -1,7 +1,9 @@
 import os
+from typing import List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+
 from .models import Course, NRC, Assignment, User, user_nrc, Base
 from ..debug import Console
 
@@ -25,6 +27,7 @@ class Database:
         self.console.debug_log("Connection Successful")
 
     def get_session(self) -> Session:
+        self.console.debug_log("Obtaining new Session object")
         """
         Gets a valid session object to interact with the database through Object Relational Mapping
 
@@ -45,6 +48,7 @@ class Database:
         Returns: A boolean representing if the transaction was successful
 
         """
+        self.console.debug_log(f"Attempting to add new course to a database: {course_dept} {course_code}: {course_name}")
         s = self._session()
         try:
             c = Course(
@@ -55,13 +59,13 @@ class Database:
             self.console.log("Adding course to database...")
             s.add(c)
             s.commit()
-            self.console.debug_log(f"Course added: {c}")
+            self.console.debug_log(f"Operation completed. Added 1 row.")
             return True
         except Exception as e:
             self.console.err(f"Error in adding course: {e}")
             return False
 
-    def get_courses(self) -> list[Course]:
+    def get_courses(self) -> List[Course]:
         """
         Gets all the courses stored in the database
 
@@ -71,7 +75,7 @@ class Database:
         self.console.debug_log("Querying for all courses...")
         s = self._session()
         courses = s.query(Course).all()
-        self.console.log(f"Query completed. Got {len(courses)} results.")
+        self.console.log(f"Query completed. Got {len(courses)} rows.")
         return courses
 
     def get_course(self, dept: str, code: str) -> Course:
@@ -88,11 +92,12 @@ class Database:
         dept = dept.upper()
         self.console.debug_log(f"Querying to find course {dept} {code}")
 
-        query = self.get_session().query(Course).filter_by(course_dept=dept, course_code=code)
+        query = self.get_session().query(Course).filter_by(course_dept=dept, course_code=code).first()
 
-        return query.first()
+        self.console.debug_log(f"Query completed. Got {query} as result.")
+        return query
 
-    def courses_in_dept(self, dept: str) -> list[Course]:
+    def courses_in_dept(self, dept: str) -> List[Course]:
         """
         Gets a list of all courses pertaining to a given department.
 
@@ -105,9 +110,10 @@ class Database:
         dept = dept.upper()
         self.console.debug_log(f"Querying for courses in dept {dept}")
 
-        query = self.get_session().query(Course).filter_by(course_dept=dept)
+        query = self.get_session().query(Course).filter_by(course_dept=dept).all()
 
-        return query.all()
+        self.console.debug_log(f"Query completed. Got {len(query)} rows.")
+        return query
 
     def delete_course(self, dept: str, code: str) -> bool:
         """
@@ -130,8 +136,26 @@ class Database:
         if course is not None:
             self.console.debug_log("Course found, Deleting...")
             session.delete(course)
+            self.console.debug_log("Operation completed. Deleted 1 row.")
             return True
 
         else:
             self.console.err(f"The course {dept} {code} was not found in the database, skipping deletion.")
             return False
+
+    def search_course(self, course_name: str) -> List[Course]:
+        """
+        Function that allows searching a specific course by name
+
+        Args:
+            course_name: The name of the course to be searched
+
+        Returns: List containing the courses that were found, could be an empty list
+
+        """
+
+        self.console.debug_log(f"Querying for courses with {course_name} in their name")
+        courses = self.get_session().query(Course).filter(Course.name.ilike(f"%{course_name}%")).all()
+
+        self.console.debug_log(f"Query completed. Got {len(courses)} rows")
+        return courses
