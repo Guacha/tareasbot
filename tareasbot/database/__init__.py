@@ -7,6 +7,9 @@ from sqlalchemy.orm import sessionmaker, Session
 from .models import Course, NRC, Assignment, User, user_nrc, Base
 from ..debug import Console
 
+# Code for the current semester
+CURRENT_SEMESTER_CODE = 202030
+
 
 class Database:
     """
@@ -155,7 +158,42 @@ class Database:
         """
 
         self.console.debug_log(f"Querying for courses with {course_name} in their name")
-        courses = self.get_session().query(Course).filter(Course.name.ilike(f"%{course_name}%")).all()
+        session = self.get_session()
+        courses = session.query(Course).filter(Course.name.ilike(f"%{course_name}%")).all()
 
         self.console.debug_log(f"Query completed. Got {len(courses)} rows")
+        session.close()
         return courses
+
+    def add_nrc(self, course_dept: str, course_code: str, nrc_id: int,
+                nrc_semester: int = CURRENT_SEMESTER_CODE) -> bool:
+        """
+        Function to add a new NRC to the database, and assign it to a given course
+
+        Args: course_dept: The department of the course where the NRC is assigned to course_code: The code of the
+        course where the NRC is assigned to nrc_id: The ID of the newly created NRC, usually a 4-5 digit integer
+        nrc_semester: The semester code of the newly created NRC, usually a 6 digit integer, defaults to value
+        specified in the main package
+
+        Returns: A boolean representing whether the transaction was successful
+
+        """
+
+        self.console.debug_log(f"Trying to add NRC {nrc_id:04}")
+        course = self.get_course(course_dept, course_code)
+
+        if course is not None:
+            session = self.get_session()
+            self.console.debug_log(f"Adding NRC {nrc_id:04} to course {course}")
+            n = NRC(id=nrc_id, semester_code=nrc_semester, course=course)
+            try:
+                session.add(n)
+                session.commit()
+                self.console.debug_log(f"Operation completed. Added 1 row.")
+                return True
+
+            except Exception as e:
+                self.console.err(f"Error in adding NRC: {e}")
+                return False
+        else:
+            self.console.err(f"Error in adding NRC: Course {course_dept.upper()} {course_code} does not exist.")

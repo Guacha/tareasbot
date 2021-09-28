@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -18,6 +18,7 @@ class User(Base):
 
 class Course(Base):
     __tablename__ = 'courses'
+    __table_args__ = (UniqueConstraint('course_dept', 'course_code', name="_course_dept_course_semester_uc"),)
     id = Column(Integer, primary_key=True)
     course_dept = Column(String(5), nullable=False)
     course_code = Column(String(5), nullable=False)
@@ -30,12 +31,14 @@ class Course(Base):
 
 class NRC(Base):
     __tablename__ = 'nrcs'
+    __table_args__ = (UniqueConstraint('nrc', 'semester_code', name="_nrc_semester_uc"),)
     id = Column(Integer, primary_key=True)
+    nrc = Column(Integer, nullable=False)
+    semester_code = Column(Integer, nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id"))
     course = relationship("Course", back_populates="nrcs")
     assignments = relationship("Assignment", back_populates="nrc")
     enrolled_users = relationship("User", secondary=user_nrc, back_populates="enrolled_nrcs")
-    semester_code = Column(Integer, nullable=False)
 
     def __repr__(self):
         return f"<NRC: {self.id:04} for course {self.course.course_dept} {self.course.course_code}>"
