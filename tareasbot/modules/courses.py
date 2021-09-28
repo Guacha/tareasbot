@@ -63,17 +63,11 @@ class CourseCog(Cog):
                 option_type=3,
                 required=True
             ),
-            create_option(
-                name="semestre",
-                description="Codigo del semestre del curso, Algo como 202030",
-                option_type=4,
-                required=True
-            ),
-
         ]
     )
-    async def add_course(self, ctx: SlashContext, departamento: str, codigo: int, nombre: str, semestre: int) -> None:
+    async def add_course(self, ctx: SlashContext, departamento: str, codigo: int, nombre: str) -> None:
         departamento = departamento.upper()
+        codigo = str(codigo)
         nombre.capitalize()
         self.console.debug_log(f"Command: cursos agregar {departamento} {codigo}, {nombre}, User: "
                                f"{ctx.author.name} ({ctx.author_id})")
@@ -82,18 +76,13 @@ class CourseCog(Cog):
             await ctx.send("El nombre del departamento no es válido, debe ser una cadena de 3 caracteres")
             return
 
-        if not (999 < codigo <= 999999):
+        if len(codigo) < 3:
             self.console.err("Command failed: Course code error")
             await ctx.send("El código de la asignatura no es válida, debe ser un entero de al menos 4 y no mas de 6 "
                            "caracteres")
             return
-        if not (99999 < semestre < 1000000):
-            self.console.err("Command failed: Course semester error")
-            await ctx.send("El código de la asignatura no es válida, debe ser un entero de 6 caracteres")
-            return
-
         self.console.debug_log("Calling DB Function: add_course()")
-        DB.add_course(departamento, codigo, nombre, semestre)
+        DB.add_course(departamento, codigo, nombre)
         await ctx.send("He agregado el curso satisfactoriamente uwu")
 
 

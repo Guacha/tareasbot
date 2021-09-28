@@ -20,10 +20,9 @@ class Course(Base):
     __tablename__ = 'courses'
     id = Column(Integer, primary_key=True)
     course_dept = Column(String(5), nullable=False)
-    course_code = Column(Integer, nullable=False)
+    course_code = Column(String(5), nullable=False)
     name = Column(String(150), nullable=False)
     nrcs = relationship("NRC", back_populates="course")
-    semester_code = Column(Integer, nullable=False)
 
     def __repr__(self):
         return f"Course: {self.name} ({self.course_dept} {self.course_code})"
@@ -36,6 +35,7 @@ class NRC(Base):
     course = relationship("Course", back_populates="nrcs")
     assignments = relationship("Assignment", back_populates="nrc")
     enrolled_users = relationship("User", secondary=user_nrc, back_populates="enrolled_nrcs")
+    semester_code = Column(Integer, nullable=False)
 
 
 class Assignment(Base):
