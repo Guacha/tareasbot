@@ -1,3 +1,3 @@
 from tareasbot import DB
+course = DB.search_course("compiladores")[0]
 
-print(DB.courses_in_dept("IST"))
